@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wp-mysql
+  labels:
+    app: my-wp-app  #this is service label
+spec:
+  clusterIP: None
+  ports:
+    - port: 3306
+  selector:
+    app: mysql-pod  # Looks for pods with this label
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wp-mysql-deployment
+  labels:
+    app: my-wp-app  
+spec:
+  # if we not specify replicas, it will default to 1
+  selector:
+    matchLabels:
+      app: mysql-pod
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql-pod
+    spec:
+      containers:
+        - name: mysql-pod
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: mysql-root-password
+            - name: MYSQL_DATABASE
+              value: "wordpress"
+            - name: MYSQL_USER
+              value: "wordpress"
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: mysql-root-password
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-storage
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: mysql-pvc 
