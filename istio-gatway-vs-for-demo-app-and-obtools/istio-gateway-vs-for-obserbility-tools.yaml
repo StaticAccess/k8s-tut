@@ -1,0 +1,91 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: istio-monitoring-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "*"
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: istio-monitoring-vs
+  namespace: istio-system
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - istio-monitoring-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /productpage
+      route:
+        - destination:
+            host: productpage.default.svc.cluster.local
+            port:
+              number: 9080
+
+    - match:
+        - uri:
+            prefix: /prometheus
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: prometheus.istio-system.svc.cluster.local
+            port:
+              number: 9090
+
+    - match:
+        - uri:
+            prefix: /grafana
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: grafana.istio-system.svc.cluster.local
+            port:
+              number: 3000
+
+    - match:
+        - uri:
+            prefix: /kiali
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: kiali.istio-system.svc.cluster.local
+            port:
+              number: 20001  # sometimes 20000 or 20001
+
+    - match:
+        - uri:
+            prefix: /jaeger
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: jaeger.istio-system.svc.cluster.local
+            port:
+              number: 16686
+
+    - match:
+        - uri:
+            prefix: /zipkin
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: zipkin.istio-system.svc.cluster.local
+            port:
+              number: 9411
