@@ -5,8 +5,8 @@ name: istio-lab
 nodes:
   - role: control-plane
     extraPortMappings:
-      - containerPort: 32080  # Maps to Istio ingressgateway HTTP
-        hostPort: 8080
+      - containerPort: 80  # Maps to Istio ingressgateway HTTP
+        hostPort: 8088
         protocol: TCP
       - containerPort: 32443  # Maps to Istio ingressgateway HTTPS
         hostPort: 8443
